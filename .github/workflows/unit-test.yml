@@ -39,5 +39,5 @@ jobs:
       #        run: ./gradlew build sonarqube --info
 
       - name: Unit Test
-        run: ./gradlew test
+        run: ./gradlew build test
 
