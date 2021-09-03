@@ -6,8 +6,8 @@ plugins {
     kotlin("jvm") version "1.5.21"
     kotlin("plugin.spring") version "1.5.21"
     kotlin("plugin.jpa") version "1.5.21"
+    id("org.sonarqube") version "3.3"
 }
-
 group = "com.acmebank"
 
 version = "0.0.1-SNAPSHOT"
@@ -41,3 +41,5 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> { useJUnitPlatform() }
+
+
