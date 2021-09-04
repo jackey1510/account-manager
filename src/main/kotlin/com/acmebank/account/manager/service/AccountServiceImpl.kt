@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class AccountServiceImpl : AccountService {
-    private var logger = LoggerFactory.getLogger(AccountService::class.java)
+    private val logger = LoggerFactory.getLogger(AccountService::class.java)
 
     @Autowired
     private lateinit var accountRepository: AccountRepository
