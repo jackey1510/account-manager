@@ -41,12 +41,37 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return buildResponseEntity(ex, HttpStatus.NOT_FOUND)
     }
 
+    @ExceptionHandler(DuplicateTransactionException::class)
+    fun handleDuplicateTransaction(
+        ex: DuplicateTransactionException
+    ): ResponseEntity<Any> {
+        logger.warn("handleInsufficientBalance: IN", ex)
+        return buildResponseEntity(ex, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(InsufficientBalanceException::class)
+    fun handleInsufficientBalance(
+        ex: InsufficientBalanceException
+    ): ResponseEntity<Any> {
+        logger.warn("handleInsufficientBalance: IN", ex)
+        return buildResponseEntity(ex, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(CurrencyNotSupportedException::class)
+    fun handleCurrencyNotSupported(
+        ex: CurrencyNotSupportedException
+    ): ResponseEntity<Any> {
+        logger.warn("handleCurrencyNotSupported: IN", ex)
+        return buildResponseEntity(ex, HttpStatus.BAD_REQUEST)
+    }
+
+
     private fun buildResponseEntity(status: HttpStatus): ResponseEntity<Any> {
         return ResponseEntity(status)
     }
 
     private fun buildResponseEntity(ex: Exception, status: HttpStatus): ResponseEntity<Any> {
-        val body = ErrorResponse(ex.message, status);
+        val body = ErrorResponse(ex.message, status)
         return ResponseEntity(body, status)
     }
 
