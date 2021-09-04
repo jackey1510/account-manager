@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.mockito.InjectMocks
+import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
-import org.mockito.Spy
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
@@ -22,7 +22,7 @@ class AccountControllerTest {
     @InjectMocks
     private lateinit var accountController: AccountController
 
-    @Spy
+    @Mock
     private lateinit var accountService: AccountService
 
     @BeforeAll
