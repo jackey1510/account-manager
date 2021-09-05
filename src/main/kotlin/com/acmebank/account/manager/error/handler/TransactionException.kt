@@ -4,6 +4,8 @@ import com.acmebank.account.manager.model.Transaction
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-class InsufficientBalanceException(transaction: Transaction, message: String? = "Insufficient Balance") :
-    TransactionException(transaction, message)
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+abstract class TransactionException(transaction: Transaction, message: String? = "Transaction Error") :
+    RuntimeException(message) {
+    val transaction = transaction
+}

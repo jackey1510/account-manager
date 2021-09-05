@@ -6,6 +6,7 @@ import com.acmebank.account.manager.enum.TransactionStatus
 import com.acmebank.account.manager.error.handler.CurrencyNotSupportedException
 import com.acmebank.account.manager.error.handler.DuplicateTransactionException
 import com.acmebank.account.manager.error.handler.InsufficientBalanceException
+import com.acmebank.account.manager.error.handler.TransactionAlreadyProcessedException
 import com.acmebank.account.manager.model.Transaction
 import com.acmebank.account.manager.repository.TransactionLogRepository
 import com.acmebank.account.manager.repository.TransactionRepository
@@ -72,19 +73,19 @@ class TransactionServiceTest {
     @Test
     fun executeTransactionSuccess() {
         Mockito.`when`(accountService.transferBalance(mockTransaction)).thenAnswer { }
-        val expected = mockTransaction
+        val expected = mockTransaction.copy()
         expected.status = TransactionStatus.SUCCESS
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
         val result = transactionServiceImpl.executeTransaction(mockTransaction)
+
         assert(result == expected)
     }
 
     @Test
     fun executeTransactionFailWithWrongCurrency() {
-
         var usdTransaction = mockTransaction
         usdTransaction.currency = "USD"
-        val expected = mockTransaction
+        val expected = mockTransaction.copy()
         expected.status = TransactionStatus.FAILED
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
         assertThrows<CurrencyNotSupportedException> { transactionServiceImpl.executeTransaction(usdTransaction) }
@@ -92,11 +93,23 @@ class TransactionServiceTest {
 
     @Test
     fun executeTransactionFailWithInsufficientBalance() {
-        val expected = mockTransaction
+        val expected = mockTransaction.copy()
         expected.status = TransactionStatus.FAILED
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
-        Mockito.`when`(accountService.transferBalance(mockTransaction)).thenThrow(InsufficientBalanceException())
+        Mockito.`when`(accountService.transferBalance(mockTransaction))
+            .thenThrow(InsufficientBalanceException(expected))
         assertThrows<InsufficientBalanceException> { transactionServiceImpl.executeTransaction(mockTransaction) }
+    }
+
+    @Test
+    fun transactionAlreadyProcessed() {
+        val processedTransaction = mockTransaction.copy()
+        processedTransaction.status = TransactionStatus.SUCCESS
+        assertThrows<TransactionAlreadyProcessedException> {
+            transactionServiceImpl.executeTransaction(
+                processedTransaction
+            )
+        }
     }
 
 }

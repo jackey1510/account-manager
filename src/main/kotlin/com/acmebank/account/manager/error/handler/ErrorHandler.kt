@@ -70,8 +70,13 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return ResponseEntity(status)
     }
 
-    private fun buildResponseEntity(ex: Exception, status: HttpStatus): ResponseEntity<Any> {
+    private fun buildResponseEntity(ex: CommonException, status: HttpStatus): ResponseEntity<Any> {
         val body = ErrorResponse(ex.message, status)
+        return ResponseEntity(body, status)
+    }
+
+    private fun buildResponseEntity(ex: TransactionException, status: HttpStatus): ResponseEntity<Any> {
+        val body = ErrorResponse(ex.message, status, ex.transaction)
         return ResponseEntity(body, status)
     }
 

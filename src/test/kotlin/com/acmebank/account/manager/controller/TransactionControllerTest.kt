@@ -65,7 +65,7 @@ class TransactionControllerTest {
 
         Mockito.`when`(transactionService.createTransaction(transferRequest)).thenReturn(mockTransaction)
         Mockito.`when`(transactionService.executeTransaction(mockTransaction))
-            .thenThrow(CurrencyNotSupportedException())
+            .thenThrow(CurrencyNotSupportedException(mockTransaction))
 
         assertThrows<CurrencyNotSupportedException> { transactionController.transferMoney(transferRequest) }
     }
@@ -76,7 +76,8 @@ class TransactionControllerTest {
             TransactionRequestDto("12345678", "88888888", BigDecimal(100000000), "USD", UUID.randomUUID())
         val mockTransaction = transferRequest.toTransaction()
         Mockito.`when`(transactionService.createTransaction(transferRequest)).thenReturn(mockTransaction)
-        Mockito.`when`(transactionService.executeTransaction(mockTransaction)).thenThrow(InsufficientBalanceException())
+        Mockito.`when`(transactionService.executeTransaction(mockTransaction))
+            .thenThrow(InsufficientBalanceException(mockTransaction))
 
         assertThrows<InsufficientBalanceException> { transactionController.transferMoney(transferRequest) }
     }

@@ -6,6 +6,7 @@ import com.acmebank.account.manager.enum.TransactionStatus
 import com.acmebank.account.manager.error.handler.CurrencyNotSupportedException
 import com.acmebank.account.manager.error.handler.DuplicateTransactionException
 import com.acmebank.account.manager.error.handler.InsufficientBalanceException
+import com.acmebank.account.manager.error.handler.TransactionAlreadyProcessedException
 import com.acmebank.account.manager.model.Transaction
 import com.acmebank.account.manager.model.TransactionLog
 import com.acmebank.account.manager.repository.TransactionLogRepository
@@ -54,7 +55,10 @@ class TransactionServiceImpl : TransactionService {
     override fun executeTransaction(transaction: Transaction): Transaction {
         if (transaction.currency != "HKD") {
             transactionUpdate(transaction, TransactionStatus.FAILED, "Only HKD is supported")
-            throw CurrencyNotSupportedException()
+            throw CurrencyNotSupportedException(transaction)
+        }
+        if (transaction.status != TransactionStatus.PENDING) {
+            throw TransactionAlreadyProcessedException(transaction, "Transaction Processed")
         }
         try {
             accountService.transferBalance(transaction)

@@ -58,7 +58,7 @@ class AccountServiceImpl : AccountService {
     @Transactional
     override fun transferBalance(transaction: Transaction) {
         if (!hasSufficientBalance(transaction)) {
-            throw InsufficientBalanceException()
+            throw InsufficientBalanceException(transaction)
         }
 
         val creditorQuery =
