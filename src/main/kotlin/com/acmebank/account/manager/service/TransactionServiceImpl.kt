@@ -54,7 +54,7 @@ class TransactionServiceImpl : TransactionService {
     override fun executeTransaction(transaction: Transaction): Transaction {
         if (transaction.currency != "HKD") {
             transactionUpdate(transaction, TransactionStatus.FAILED, "Only HKD is supported")
-            throw CurrencyNotSupportedException();
+            throw CurrencyNotSupportedException()
         }
         try {
             accountService.transferBalance(transaction)
@@ -83,7 +83,7 @@ class TransactionServiceImpl : TransactionService {
         )
         transactionLogRepository.save(transactionLog)
         transaction.status = status
-        return transactionRepository.save(transaction);
+        return transactionRepository.save(transaction)
 
     }
 }

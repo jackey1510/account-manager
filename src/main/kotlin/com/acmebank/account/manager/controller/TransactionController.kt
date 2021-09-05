@@ -20,7 +20,7 @@ class TransactionController {
     @PostMapping("/transfer")
     fun transferMoney(@Valid @RequestBody() body: TransactionRequestDto): TransactionResponseDto {
         val transaction = transactionService.createTransaction(body)
-        return transactionService.executeTransaction(transaction).toTransactionResponseDto();
+        return transactionService.executeTransaction(transaction).toTransactionResponseDto()
 
     }
 }

@@ -32,16 +32,22 @@ class AccountServiceImpl : AccountService {
     }
 
     @Transactional
-    private fun hasSufficientBalance(transaction: Transaction): Boolean {
+    private fun getDebtorAccount(transaction: Transaction): Account {
         val properties = HashMap<String, Any>()
         properties["javax.persistence.lock.timeout"] = 2000L
-
-        val debtorAccount: Account = entityManager.find(
+        return entityManager.find(
             Account::class.java,
             transaction.debtorAccountNumber,
             LockModeType.PESSIMISTIC_READ,
             properties
         )
+
+    }
+
+
+    @Transactional
+    private fun hasSufficientBalance(transaction: Transaction): Boolean {
+        val debtorAccount = getDebtorAccount(transaction)
         // Insufficient Balance
         if (debtorAccount.balance.compareTo(transaction.amount) < 0) {
             return false

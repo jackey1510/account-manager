@@ -42,6 +42,7 @@ class TransactionControllerTest {
         val transferRequest = TransactionRequestDto("12345678", "88888888", BigDecimal(100), "HKD", UUID.randomUUID())
 
         val mockTransaction = transferRequest.toTransaction()
+        mockTransaction.id = UUID.randomUUID()
         var successTransaction = mockTransaction
         successTransaction.status = TransactionStatus.SUCCESS
 
