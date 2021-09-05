@@ -3,19 +3,16 @@ package com.acmebank.account.manager.service
 import com.acmebank.account.manager.dto.request.TransactionRequestDto
 import com.acmebank.account.manager.dto.request.toTransaction
 import com.acmebank.account.manager.enum.TransactionStatus
-import com.acmebank.account.manager.error.handler.CurrencyNotSupportedException
-import com.acmebank.account.manager.error.handler.DuplicateTransactionException
-import com.acmebank.account.manager.error.handler.InsufficientBalanceException
-import com.acmebank.account.manager.error.handler.TransactionAlreadyProcessedException
+import com.acmebank.account.manager.error.handler.*
 import com.acmebank.account.manager.model.Transaction
 import com.acmebank.account.manager.model.TransactionLog
 import com.acmebank.account.manager.repository.TransactionLogRepository
 import com.acmebank.account.manager.repository.TransactionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.sql.SQLException
 
 
@@ -30,16 +27,12 @@ class TransactionServiceImpl : TransactionService {
     @Autowired
     private lateinit var accountService: AccountService
 
-    @Value("\${spring.datasource.url}")
-    private lateinit var databaseUrl: String
-
     private val logger = LoggerFactory.getLogger(TransactionService::class.java)
 
     @Transactional
     override fun createTransaction(transactionRequestDto: TransactionRequestDto): Transaction {
         var transaction = transactionRequestDto.toTransaction()
-        logger.info(transaction.toString())
-
+        validateTransaction(transaction)
         try {
             transaction = transactionRepository.saveAndFlush(transaction)
             logger.info(transaction.id.toString())
@@ -49,6 +42,30 @@ class TransactionServiceImpl : TransactionService {
             throw DuplicateTransactionException()
         }
 
+    }
+
+    private fun validateTransaction(transaction: Transaction) {
+        if (accountService.getAccountByAccountNumber(transaction.debtorAccountNumber) == null
+        ) {
+            throw DataNotFoundException(
+                String.format(
+                    "Debtor Account Number %s Not Found",
+                    transaction.debtorAccountNumber
+                )
+            )
+        }
+
+        if (accountService.getAccountByAccountNumber(transaction.creditorAccountNumber) == null) {
+            throw DataNotFoundException(
+                String.format("Creditor Account Number %s Not Found", transaction.creditorAccountNumber)
+            )
+        }
+        if (transaction.amount < BigDecimal.ZERO) {
+            throw InvalidTransferAmountException()
+        }
+        if (transaction.debtorAccountNumber == transaction.creditorAccountNumber) {
+            throw InvalidAccountException("Debtor Account Number and Creditor Account Number cannot be the same")
+        }
     }
 
     @Transactional
