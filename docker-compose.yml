@@ -2,7 +2,7 @@ version: '3.8'
 services:
   account-manager:
     volumes:
-      - "./build/libs:/app"
+      - "./docker:/workspace/app"
     build:
       context: .
       dockerfile: Dockerfile
