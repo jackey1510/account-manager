@@ -61,7 +61,7 @@ see http://localhost:8080/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-c
 
 ## Sample Accounts
 
-Account 1: 12345678
-Account 2: 88888888
+- Account 1: 12345678
+- Account 2: 88888888
 
   
