@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  account-manager:
+    volumes:
+      - "./build/libs:/app"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
