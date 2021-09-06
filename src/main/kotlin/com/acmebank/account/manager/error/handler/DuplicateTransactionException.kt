@@ -5,4 +5,4 @@ import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 class DuplicateTransactionException(message: String? = "Transaction is duplicated") :
-    CommonException(message)
+    ValidationException(message)
