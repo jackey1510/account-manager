@@ -3,10 +3,8 @@ package com.acmebank.account.manager.service
 import com.acmebank.account.manager.dto.request.TransactionRequestDto
 import com.acmebank.account.manager.dto.request.toTransaction
 import com.acmebank.account.manager.enum.TransactionStatus
-import com.acmebank.account.manager.error.handler.CurrencyNotSupportedException
-import com.acmebank.account.manager.error.handler.DuplicateTransactionException
-import com.acmebank.account.manager.error.handler.InsufficientBalanceException
-import com.acmebank.account.manager.error.handler.TransactionAlreadyProcessedException
+import com.acmebank.account.manager.error.handler.*
+import com.acmebank.account.manager.model.Account
 import com.acmebank.account.manager.model.Transaction
 import com.acmebank.account.manager.repository.TransactionLogRepository
 import com.acmebank.account.manager.repository.TransactionRepository
@@ -20,7 +18,7 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TransactionServiceTest {
     @InjectMocks
-    private lateinit var transactionServiceImpl: TransactionServiceImpl
+    private lateinit var transactionService: TransactionServiceImpl
 
     @Spy
     private lateinit var transactionRepository: TransactionRepository
@@ -34,6 +32,8 @@ class TransactionServiceTest {
     private lateinit var transferRequest: TransactionRequestDto
     private lateinit var mockTransaction: Transaction
 
+    private lateinit var mockAccount: Account
+
 
     @BeforeAll
     fun setUp() {
@@ -45,6 +45,7 @@ class TransactionServiceTest {
         transferRequest = TransactionRequestDto("12345678", "88888888", BigDecimal(100000000), "HKD", UUID.randomUUID())
         mockTransaction = transferRequest.toTransaction()
         mockTransaction.id = UUID.randomUUID()
+        mockAccount = Account("12345678")
     }
 
     @Test
@@ -53,21 +54,51 @@ class TransactionServiceTest {
 
     @Test
     fun createTransaction() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(Mockito.anyString())).thenReturn(mockAccount)
         Mockito.`when`(transactionRepository.saveAndFlush(Mockito.any(Transaction::class.java)))
             .thenReturn(mockTransaction)
-        val result = transactionServiceImpl.createTransaction(transferRequest)
+        val result = transactionService.createTransaction(transferRequest)
         assert(result == mockTransaction)
-
     }
 
     @Test
     fun createDuplicateTransactionFail() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(Mockito.anyString())).thenReturn(mockAccount)
         Mockito.`when`(transactionRepository.saveAndFlush(Mockito.any(Transaction::class.java)))
             .thenThrow(DuplicateTransactionException())
+        assertThrows<DuplicateTransactionException> { transactionService.createTransaction(transferRequest) }
+    }
 
-        assertThrows<DuplicateTransactionException> { transactionServiceImpl.createTransaction(transferRequest) }
+    @Test
+    fun createTransactionWithInvalidDebtorAccountNumber() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(mockTransaction.creditorAccountNumber))
+            .thenReturn(mockAccount)
+        Mockito.`when`(accountService.getAccountByAccountNumber(mockTransaction.debtorAccountNumber)).thenReturn(null)
+        assertThrows<DataNotFoundException> { transactionService.createTransaction(transferRequest) }
+    }
 
+    @Test
+    fun createTransactionWithInvalidCreditorAccountNumber() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(mockTransaction.debtorAccountNumber))
+            .thenReturn(mockAccount)
+        Mockito.`when`(accountService.getAccountByAccountNumber(mockTransaction.creditorAccountNumber)).thenReturn(null)
+        assertThrows<DataNotFoundException> { transactionService.createTransaction(transferRequest) }
+    }
 
+    @Test
+    fun createTransactionWithInvalidAmount() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(Mockito.anyString())).thenReturn(mockAccount)
+        val invalidRequest = transferRequest.copy()
+        invalidRequest.amount = BigDecimal(-1)
+        assertThrows<InvalidTransferAmountException> { transactionService.createTransaction(invalidRequest) }
+    }
+
+    @Test
+    fun createTransactionWithInvalidAccountNumber() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(Mockito.anyString())).thenReturn(mockAccount)
+        val invalidRequest = transferRequest.copy()
+        invalidRequest.debtorAccountNumber = invalidRequest.creditorAccountNumber
+        assertThrows<InvalidAccountException> { transactionService.createTransaction(invalidRequest) }
     }
 
     @Test
@@ -76,7 +107,7 @@ class TransactionServiceTest {
         val expected = mockTransaction.copy()
         expected.status = TransactionStatus.SUCCESS
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
-        val result = transactionServiceImpl.executeTransaction(mockTransaction)
+        val result = transactionService.executeTransaction(mockTransaction)
 
         assert(result == expected)
     }
@@ -88,7 +119,7 @@ class TransactionServiceTest {
         val expected = mockTransaction.copy()
         expected.status = TransactionStatus.FAILED
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
-        assertThrows<CurrencyNotSupportedException> { transactionServiceImpl.executeTransaction(usdTransaction) }
+        assertThrows<CurrencyNotSupportedException> { transactionService.executeTransaction(usdTransaction) }
     }
 
     @Test
@@ -98,7 +129,7 @@ class TransactionServiceTest {
         Mockito.`when`(transactionRepository.save(Mockito.any(Transaction::class.java))).thenReturn(expected)
         Mockito.`when`(accountService.transferBalance(mockTransaction))
             .thenThrow(InsufficientBalanceException(expected))
-        assertThrows<InsufficientBalanceException> { transactionServiceImpl.executeTransaction(mockTransaction) }
+        assertThrows<InsufficientBalanceException> { transactionService.executeTransaction(mockTransaction) }
     }
 
     @Test
@@ -106,7 +137,7 @@ class TransactionServiceTest {
         val processedTransaction = mockTransaction.copy()
         processedTransaction.status = TransactionStatus.SUCCESS
         assertThrows<TransactionAlreadyProcessedException> {
-            transactionServiceImpl.executeTransaction(
+            transactionService.executeTransaction(
                 processedTransaction
             )
         }
