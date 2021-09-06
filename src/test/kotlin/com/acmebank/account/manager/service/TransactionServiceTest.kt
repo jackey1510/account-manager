@@ -94,6 +94,14 @@ class TransactionServiceTest {
     }
 
     @Test
+    fun createTransactionWithInvalidAccountNumber() {
+        Mockito.`when`(accountService.getAccountByAccountNumber(Mockito.anyString())).thenReturn(mockAccount)
+        val invalidRequest = transferRequest.copy()
+        invalidRequest.debtorAccountNumber = invalidRequest.creditorAccountNumber
+        assertThrows<InvalidAccountException> { transactionService.createTransaction(invalidRequest) }
+    }
+
+    @Test
     fun executeTransactionSuccess() {
         Mockito.`when`(accountService.transferBalance(mockTransaction)).thenAnswer { }
         val expected = mockTransaction.copy()
