@@ -39,9 +39,9 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return buildResponseEntity(ex, HttpStatus.NOT_FOUND)
     }
 
-    @ExceptionHandler(CommonException::class)
+    @ExceptionHandler(ValidationException::class)
     fun handleCommonException(
-        ex: CommonException
+        ex: ValidationException
     ): ResponseEntity<Any> {
         logger.warn(String.format("handleCommonException", ex::class.java), ex)
         return buildResponseEntity(ex, HttpStatus.BAD_REQUEST)
@@ -54,19 +54,24 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         logger.warn(String.format("handleTransactionException: %s", ex::class.java), ex)
         return buildResponseEntity(ex, HttpStatus.BAD_REQUEST)
     }
-    
+
 
     private fun buildResponseEntity(status: HttpStatus): ResponseEntity<Any> {
         return ResponseEntity(status)
     }
 
-    private fun buildResponseEntity(ex: CommonException, status: HttpStatus): ResponseEntity<Any> {
+    private fun buildResponseEntity(ex: ValidationException, status: HttpStatus): ResponseEntity<Any> {
         val body = ErrorResponse(ex.message, status)
         return ResponseEntity(body, status)
     }
 
     private fun buildResponseEntity(ex: TransactionException, status: HttpStatus): ResponseEntity<Any> {
         val body = ErrorResponse(ex.message, status, ex.transaction)
+        return ResponseEntity(body, status)
+    }
+
+    private fun buildResponseEntity(ex: RuntimeException, status: HttpStatus): ResponseEntity<Any> {
+        val body = ErrorResponse(ex.message, status)
         return ResponseEntity(body, status)
     }
 
