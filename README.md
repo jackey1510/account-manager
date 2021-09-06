@@ -36,6 +36,12 @@ Start the server
   ./gradlew bootRun
 ```
 
+## Run with Docker
+
+```bash
+  docker compose up
+```
+
 ## Running Tests
 
 To run tests, run the following command

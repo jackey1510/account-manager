@@ -5,5 +5,4 @@ import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class InvalidTransferAmountException(message: String? = "Transfer amount must be greater than 0") :
-    ValidationException(message) {
-}
+    ValidationException(message)

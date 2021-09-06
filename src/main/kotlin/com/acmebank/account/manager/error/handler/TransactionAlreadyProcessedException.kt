@@ -8,5 +8,4 @@ import org.springframework.web.bind.annotation.ResponseStatus
 class TransactionAlreadyProcessedException(
     transaction: Transaction,
     message: String? = "Transaction already processed"
-) : TransactionException(transaction, message) {
-}
+) : TransactionException(transaction, message)
